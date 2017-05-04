@@ -1,6 +1,6 @@
 
 # Uncomment the line for your platform to link the Dummy player to the executable
-#DUMMY_OBJ = AIDummy.o-LINUX32
+DUMMY_OBJ = AIDummy.o-LINUX32
 #DUMMY_OBJ = AIDummy.o-LINUX64
 #DUMMY_OBJ = AIDummy.o-MACOS
 #DUMMY_OBJ = AIDummy.o-CYGWIN
