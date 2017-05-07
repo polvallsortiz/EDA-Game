@@ -24,56 +24,64 @@ struct PLAYER_NAME : public Player {
      * FUNCTIONS AND ALGORITHMS FOR THE PRINCIPAL FUNCTIONS
      */
 
-    int vertex_nearest_bonus(int actual_vert_id) {
-
+    /**
+     * vertex_bonus_neighbour function
+     * @param actual_vert_id
+     * @return vertex id if bonus is a neighbour, -1 otherwise
+     */
+    int vertex_bonus_neighbour(int actual_vert_id) {
+        vector<int> bv = bonus_vertices();
+        vector<int> actual_neighbours = vertex(actual_vert_id).neighbours;
+        for(int i = 0; i < bv.size(); ++i) {
+            for(int j = 0; j < actual_neighbours.size(); ++j) {
+                if(bv[i] == actual_neighbours[j]) return bv[i];
+            }
+        }
+        return -1;
     }
-
-    bool possible_to_bonus(int id) {
-        const Bike& my_bike = bike(id);
-
+    void empty_neighbours_funtion(const vector<int>& neighbours, vector<int>& empty_neighbours) {
+        for (int i = 0; i < (int) neighbours.size(); i++) {
+            int id = neighbours[i];
+            if (vertex(id).wall == -1) {
+                empty_neighbours.push_back(id);
+            }
+        }
     }
-
 
     /**
      * Attributes for your player can be defined here.
      */
     //vector<int> my_awesome_vector_of_integers;
 
-    /**
-     * Without BONUS Strategy
-     * the half 1/2 of rounds can be played
-     */
-    //1st strategy, go to the bonus if not, other
-    void to_bonus() {
-        //ESTEM ABANS DE DEIXAR ANAR EL BONUS
-        if(round() < bonus_round()) {
+   /**
+    * to_bonus function, try to go to bonus if is neigh
+    * @param bike_id
+    */
+    void to_bonus(const Bike& my_bike) {
+       Movement movement(my_bike.id);
+       int actual_vertex_bike_id = my_bike.vertex;
+       vector<int> neighbours = vertex(actual_vertex_bike_id).neighbours;
+       vector<int> empty_neighbours;
+       empty_neighbours_funtion(neighbours,empty_neighbours);
+       //ESTEM ABANS DE DEIXAR ANAR EL BONUS
+        if(round() >= bonus_round()) {
             //INTENTEM ANAR AL BONUS SI ÉS POSSIBLE
-            if(possible_to_bonus()) {
-
+            int possible = vertex_bonus_neighbour(actual_vertex_bike_id);
+            if(possible != -1) {
+                movement.next_vertex = possible;
+                movement.use_bonus = false;
+            }
+            else {
+                movement.next_vertex = empty_neighbours[1];
+                if(my_bike.bonus != None) movement.use_bonus = true;
+                else movement.use_bonus = false;
             }
         }
-        else if()
-    }
-
-    //2nd strategy, if not bonus, try to go to the ghost
-    void to_ghost() {
-
-    }
-
-    //3rd strategy, if not ghost, try to no make a tail
-    void no_tail() {
-
-    }
-
-    /**
-     * With BONUS Strategy (Ghost or Bonus)
-     */
-    void with_bonus() {
-
-    }
-
-    void with_ghost() {
-
+        else {
+            movement.next_vertex = empty_neighbours[1];
+            movement.use_bonus = false;
+        }
+       command(movement);
     }
 
     /**
@@ -99,7 +107,10 @@ struct PLAYER_NAME : public Player {
             if (round() % 2 && my_bike.turbo_duration <= 0) {
                 continue;
             }
+            to_bonus(my_bike);
+            //REPLACING ALL CONTINUE!
 
+            /*
             // Find all empty neighbours
             vector<int> neighbours = vertex(my_bike.vertex).neighbours;
             vector<int> empty_neighbours;
@@ -117,7 +128,7 @@ struct PLAYER_NAME : public Player {
             if(my_bike.bonus != None) movement.use_bonus = true;
 
             // Set next_vertex to a random empty neighbour, if any, or to a random neighbour otherwise
-            /*if (!empty_neighbours.empty()) {
+            if (!empty_neighbours.empty()) {
                 movement.next_vertex = empty_neighbours[ rand() % (int)empty_neighbours.size() ];
             } else {
                 movement.next_vertex = neighbours[ rand() % (int)neighbours.size() ];
@@ -127,9 +138,9 @@ struct PLAYER_NAME : public Player {
             if (my_bike.bonus != None && rand()%5 > 3) {
                 movement.use_bonus = true;
             }
-            */
             // Command the movement
             command(movement);
+             */
 
         }
 
