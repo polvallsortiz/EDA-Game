@@ -20,6 +20,18 @@ struct PLAYER_NAME : public Player {
     static Player* factory () {
         return new PLAYER_NAME;
     }
+    /**
+     * FUNCTIONS AND ALGORITHMS FOR THE PRINCIPAL FUNCTIONS
+     */
+
+    int vertex_nearest_bonus(int actual_vert_id) {
+
+    }
+
+    bool possible_to_bonus(int id) {
+        const Bike& my_bike = bike(id);
+
+    }
 
 
     /**
@@ -27,6 +39,42 @@ struct PLAYER_NAME : public Player {
      */
     //vector<int> my_awesome_vector_of_integers;
 
+    /**
+     * Without BONUS Strategy
+     * the half 1/2 of rounds can be played
+     */
+    //1st strategy, go to the bonus if not, other
+    void to_bonus() {
+        //ESTEM ABANS DE DEIXAR ANAR EL BONUS
+        if(round() < bonus_round()) {
+            //INTENTEM ANAR AL BONUS SI ÉS POSSIBLE
+            if(possible_to_bonus()) {
+
+            }
+        }
+        else if()
+    }
+
+    //2nd strategy, if not bonus, try to go to the ghost
+    void to_ghost() {
+
+    }
+
+    //3rd strategy, if not ghost, try to no make a tail
+    void no_tail() {
+
+    }
+
+    /**
+     * With BONUS Strategy (Ghost or Bonus)
+     */
+    void with_bonus() {
+
+    }
+
+    void with_ghost() {
+
+    }
 
     /**
      * Play method.
@@ -61,12 +109,15 @@ struct PLAYER_NAME : public Player {
                     empty_neighbours.push_back(id);
                 }
             }
-
             // Create an empty movement
             Movement movement(my_bike.id);
 
+            //RECTE
+            if(!empty_neighbours.empty()) movement.next_vertex = empty_neighbours[0];
+            if(my_bike.bonus != None) movement.use_bonus = true;
+
             // Set next_vertex to a random empty neighbour, if any, or to a random neighbour otherwise
-            if (!empty_neighbours.empty()) {
+            /*if (!empty_neighbours.empty()) {
                 movement.next_vertex = empty_neighbours[ rand() % (int)empty_neighbours.size() ];
             } else {
                 movement.next_vertex = neighbours[ rand() % (int)neighbours.size() ];
@@ -76,7 +127,7 @@ struct PLAYER_NAME : public Player {
             if (my_bike.bonus != None && rand()%5 > 3) {
                 movement.use_bonus = true;
             }
-
+            */
             // Command the movement
             command(movement);
 

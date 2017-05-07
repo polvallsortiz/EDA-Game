@@ -1,0 +1,37 @@
+\hypertarget{structVertex}{}\section{Vertex Struct Reference}
+\label{structVertex}\index{Vertex@{Vertex}}
+
+
+{\ttfamily \#include $<$Board.\+hh$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{structVertex_a2e69697726190f50c7fc040fb1ddac7a}{id}\hypertarget{structVertex_a2e69697726190f50c7fc040fb1ddac7a}{}\label{structVertex_a2e69697726190f50c7fc040fb1ddac7a}
+
+\begin{DoxyCompactList}\small\item\em The unique id for this vertex in the board. \end{DoxyCompactList}\item 
+int \hyperlink{structVertex_a566d493bf66be66b624d611ef129b417}{bike}\hypertarget{structVertex_a566d493bf66be66b624d611ef129b417}{}\label{structVertex_a566d493bf66be66b624d611ef129b417}
+
+\begin{DoxyCompactList}\small\item\em The id of the bike in this vertex if present, -\/1 otherwise. \end{DoxyCompactList}\item 
+int \hyperlink{structVertex_a06820e7fc724eb7e1a3f35df08be1cc6}{wall}
+\item 
+\hyperlink{Board_8hh_a89fd84d2116e79c08d57dffb6d167ec2}{Bonus} \hyperlink{structVertex_abd0ead532b0acdd9420fb2f46f3e7fcf}{bonus}\hypertarget{structVertex_abd0ead532b0acdd9420fb2f46f3e7fcf}{}\label{structVertex_abd0ead532b0acdd9420fb2f46f3e7fcf}
+
+\begin{DoxyCompactList}\small\item\em The bonus item that this vertex contains. \end{DoxyCompactList}\item 
+vector$<$ int $>$ \hyperlink{structVertex_a8a836da794928c52095cb162c79cfade}{neighbours}\hypertarget{structVertex_a8a836da794928c52095cb162c79cfade}{}\label{structVertex_a8a836da794928c52095cb162c79cfade}
+
+\begin{DoxyCompactList}\small\item\em The ids of the vertices that can be reached from this one. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Describes a vertex in the board graph, and its contents 
+
+\subsection{Member Data Documentation}
+\index{Vertex@{Vertex}!wall@{wall}}
+\index{wall@{wall}!Vertex@{Vertex}}
+\subsubsection[{\texorpdfstring{wall}{wall}}]{\setlength{\rightskip}{0pt plus 5cm}int Vertex\+::wall}\hypertarget{structVertex_a06820e7fc724eb7e1a3f35df08be1cc6}{}\label{structVertex_a06820e7fc724eb7e1a3f35df08be1cc6}
+Will be -\/1 if there is no wall or the id of the bike that created the wall otherwise. Pre-\/generated obstacles, if any, will be represented with a number greater than the number of bikes. 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{Board_8hh}{Board.\+hh}\end{DoxyCompactItemize}
