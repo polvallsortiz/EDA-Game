@@ -1,4 +1,5 @@
 #include "Player.hh"
+#include <stack>
 #include <queue>
 #include <cmath>
 #include <iostream>
@@ -27,6 +28,7 @@ struct PLAYER_NAME : public Player {
      * @param G
      * @return The list of Deep First Search from the vertex 0
      */
+/*
     list<int> dfs_ite (const graph& G) {
         int n = G.size();
         list<int> L;
@@ -46,6 +48,74 @@ struct PLAYER_NAME : public Player {
             }
         }
         return L;
+    }
+*/
+    bool visited_function(int vertex_id, const vector<int>& visited) {
+        int i = 0;
+        bool found = false;
+        while(i < visited.size() and not found) {
+            if(visited[i] == vertex_id) found = true;
+            ++i;
+        }
+        return found;
+    }
+
+    int counter = 0;
+
+     void recursive_path (int id_vertex, list<int>& resultaux, vector<int>& visited) {
+        ++counter;
+        Vertex vertex1 = vertex(id_vertex);
+        vector<int> neighbours = vertex1.neighbours;
+        vector<int> empty_neighbours;
+        empty_neighbours_funtion(neighbours,empty_neighbours);
+        if(empty_neighbours.size() != 0) {
+            //TODO: Make a better solution than not the first one
+            int i = 0;
+            bool found = false; //FOUND SOME VERTEX THAT IS NOT VISITED
+            while(i < empty_neighbours.size() and not found) {
+                if(not visited_function(empty_neighbours[i],visited)) found = true;
+                else ++i;
+            }
+            if(found) {
+                resultaux.push_back(empty_neighbours[i]);
+                visited.push_back(empty_neighbours[i]);
+                recursive_path(empty_neighbours[i], resultaux,visited);
+            }
+
+        }
+    }
+
+    bool in_empty(const vector<int> empty_neighbours, int vertex_id) {
+        int i = 0;
+        bool found = false;
+        while(i < empty_neighbours.size() and not found) {
+            if(empty_neighbours[i] == vertex_id) found = true;
+            ++i;
+        }
+        return found;
+    }
+
+    int next_longest_vertex (int id_vertex) {
+        Vertex vertex1 = vertex(id_vertex);
+        vector<int> neighbours = vertex1.neighbours;
+        vector<int> empty_neighbours;
+        empty_neighbours_funtion(neighbours,empty_neighbours);
+        list<int> resultprinc;
+        resultprinc.clear();
+        list<int> resultaux;
+        resultaux.clear();
+        vector<int> visited;
+        visited.clear();
+        for(int i = 0; i < empty_neighbours.size(); ++i) {
+            recursive_path(empty_neighbours[i],resultaux,visited);
+            if(resultaux.size() > resultprinc.size()) resultprinc = resultaux;
+            resultaux.clear();
+            visited.clear();
+        }
+
+        list<int>::iterator it = resultprinc.begin();
+        while(not in_empty(empty_neighbours,*it)) ++it;
+        return *it;
     }
 
     /**
@@ -75,13 +145,15 @@ struct PLAYER_NAME : public Player {
             }
         }
     }
-    void movement_with_turbo(const vector<int>& empty, Movement& movement) {
-        cerr << "TURBO MOVEMENT" << endl;
-        movement.use_bonus = true;
-    }
-    void movement_with_ghost(const vector<int>& neighbours, Movement& movement) {
-        cerr << "GHOST MOVEMENT" << endl;
-        movement.use_bonus = true;
+
+    void movement_general(const Bike& my_bike) {
+        cerr << "MOVEMENT GENERAL" << endl;
+        Movement movement1(my_bike.id);
+        int actual_vertex = my_bike.vertex;
+        int next_vertex1 = next_longest_vertex(actual_vertex);
+        movement1.next_vertex = next_vertex1;
+        if(my_bike.bonus != None) movement1.use_bonus = true;
+        command(movement1);
     }
     /**
      * Function to prove if the next vertex has empty neighbours
@@ -96,72 +168,10 @@ struct PLAYER_NAME : public Player {
         return !empty_neighbours.empty();
     }
 
-    bool in_positions(int vertex_id) {
-        int i = 0;
-        bool found = false;
-        while(i < bike_positions.size() and not found) {
-            if(bike_positions[i] == vertex_id) found = true;
-            ++i;
-        }
-        return found;
-    }
     /**
      * Attributes for your player can be defined here.
      */
     vector<int> bike_positions;
-
-   /**
-    * to_bonus function, try to go to bonus if is neigh
-    * @param bike_id
-    */
-    void to_bonus(const Bike& my_bike) {
-       cerr << "to_bonus function" << endl;
-       Movement movement(my_bike.id);
-       int actual_vertex_bike_id = my_bike.vertex;
-       vector<int> neighbours = vertex(actual_vertex_bike_id).neighbours;
-       vector<int> empty_neighbours;
-       empty_neighbours_funtion(neighbours,empty_neighbours);
-       //ESTEM DESPRES DE DEIXAR ANAR EL BONUS
-        if(round() >= bonus_round()) {
-            //INTENTEM ANAR AL BONUS SI ÉS POSSIBLE
-            int possible = vertex_bonus_neighbour(actual_vertex_bike_id);
-            if(possible != -1) {
-                movement.next_vertex = possible;
-                movement.use_bonus = false;
-            }
-            else {
-                if(my_bike.bonus == Turbo) movement_with_turbo(empty_neighbours,movement);
-                else if(my_bike.bonus == Ghost) movement_with_ghost(neighbours,movement);
-
-                    if(!empty_neighbours.empty()) {
-                        int i = 0;
-                        bool found = false;
-                        while(i < empty_neighbours.size() and not found) {
-                            if(next_next(empty_neighbours[i]) and vertex(empty_neighbours[i]).wall == -1 and not in_positions(empty_neighbours[i])) found = true;
-                            else ++i;
-                        }
-                        movement.next_vertex = empty_neighbours[i];
-                    }
-                    else movement.next_vertex = neighbours[0];
-                movement.use_bonus = false;
-            }
-        }
-        else {
-            if(!empty_neighbours.empty()) {
-                int i = 0;
-                bool found = false;
-                while(i < empty_neighbours.size() and not found) {
-                    if(next_next(empty_neighbours[i]) and vertex(empty_neighbours[i]).wall == -1 and not in_positions(empty_neighbours[i])) found = true;
-                    else ++i;
-                }
-                movement.next_vertex = empty_neighbours[i];
-            }
-            else movement.next_vertex = neighbours[0];
-            movement.use_bonus = false;
-        }
-       bike_positions.push_back(movement.next_vertex);
-       command(movement);
-    }
 
     /**
      * Play method.
@@ -186,7 +196,8 @@ struct PLAYER_NAME : public Player {
             if (round() % 2 && my_bike.turbo_duration <= 0) {
                 continue;
             }
-            to_bonus(my_bike);
+            movement_general(my_bike);
+            //to_bonus(my_bike);
             //REPLACING ALL CONTINUE!
 
             /*
