@@ -23,33 +23,6 @@ struct PLAYER_NAME : public Player {
         return new PLAYER_NAME;
     }
 
-    /**
-     * DFS ALG from EDA code pdf
-     * @param G
-     * @return The list of Deep First Search from the vertex 0
-     */
-/*
-    list<int> dfs_ite (const graph& G) {
-        int n = G.size();
-        list<int> L;
-        stack<int> S;
-        vector<boolean> vis(n, false);
-        for (int u = 0; u < n; ++u) {
-            S.push(u);
-            while (not S.empty()) {
-                int v = S.top();  S.pop();
-                if (not vis[v]) {
-                    vis[v] = true;
-                    L.push_back(v);
-                    for (int w : G[v]) {
-                        S.push(w);
-                    }
-                }
-            }
-        }
-        return L;
-    }
-*/
     bool visited_function(int vertex_id, const vector<int>& visited) {
         int i = 0;
         bool found = false;
@@ -60,10 +33,7 @@ struct PLAYER_NAME : public Player {
         return found;
     }
 
-    int counter = 0;
-
      void recursive_path (int id_vertex, list<int>& resultaux, vector<int>& visited) {
-        ++counter;
         Vertex vertex1 = vertex(id_vertex);
         vector<int> neighbours = vertex1.neighbours;
         vector<int> empty_neighbours;
@@ -95,7 +65,18 @@ struct PLAYER_NAME : public Player {
         return found;
     }
 
+    bool own_bike_to_enter(int vertex_to_go) {
+        int i = 0;
+        bool found = false;
+        while(i < bike_positions.size() and not found) {
+            if(bike_positions[i] == vertex_to_go) found = true;
+            ++i;
+        }
+        return found;
+    }
+
     int next_longest_vertex (int id_vertex) {
+        int result;
         Vertex vertex1 = vertex(id_vertex);
         vector<int> neighbours = vertex1.neighbours;
         vector<int> empty_neighbours;
@@ -112,10 +93,11 @@ struct PLAYER_NAME : public Player {
             resultaux.clear();
             visited.clear();
         }
-
         list<int>::iterator it = resultprinc.begin();
-        while(not in_empty(empty_neighbours,*it)) ++it;
-        return *it;
+        while(not in_empty(empty_neighbours,*it) and it != resultprinc.end()) ++it;
+        if(it == resultprinc.end() and !empty_neighbours.empty()) result = empty_neighbours[0];
+        else result = *it;
+        return result;
     }
 
     /**
@@ -153,6 +135,7 @@ struct PLAYER_NAME : public Player {
         int next_vertex1 = next_longest_vertex(actual_vertex);
         movement1.next_vertex = next_vertex1;
         if(my_bike.bonus != None) movement1.use_bonus = true;
+        bike_positions.push_back(next_vertex1);
         command(movement1);
     }
     /**
