@@ -33,28 +33,6 @@ struct PLAYER_NAME : public Player {
         return found;
     }
 
-     void recursive_path (int id_vertex, list<int>& resultaux, vector<int>& visited) {
-        Vertex vertex1 = vertex(id_vertex);
-        vector<int> neighbours = vertex1.neighbours;
-        vector<int> empty_neighbours;
-        empty_neighbours_funtion(neighbours,empty_neighbours);
-        if(empty_neighbours.size() != 0) {
-            //TODO: Make a better solution than not the first one
-            int i = 0;
-            bool found = false; //FOUND SOME VERTEX THAT IS NOT VISITED
-            while(i < empty_neighbours.size() and not found) {
-                if(not visited_function(empty_neighbours[i],visited)) found = true;
-                else ++i;
-            }
-            if(found) {
-                resultaux.push_back(empty_neighbours[i]);
-                visited.push_back(empty_neighbours[i]);
-                recursive_path(empty_neighbours[i], resultaux,visited);
-            }
-
-        }
-    }
-
     bool in_empty(const vector<int> empty_neighbours, int vertex_id) {
         int i = 0;
         bool found = false;
@@ -75,71 +53,56 @@ struct PLAYER_NAME : public Player {
         return found;
     }
 
-    int next_longest_vertex (int id_vertex) {
-        int result;
-        Vertex vertex1 = vertex(id_vertex);
-        vector<int> neighbours = vertex1.neighbours;
-        vector<int> empty_neighbours;
-        empty_neighbours_funtion(neighbours,empty_neighbours);
-        list<int> resultprinc;
-        resultprinc.clear();
-        list<int> resultaux;
-        resultaux.clear();
-        vector<int> visited;
-        visited.clear();
-        for(int i = 0; i < empty_neighbours.size(); ++i) {
-            recursive_path(empty_neighbours[i],resultaux,visited);
-            if(resultaux.size() > resultprinc.size()) resultprinc = resultaux;
-            resultaux.clear();
-            visited.clear();
-        }
-        list<int>::iterator it = resultprinc.begin();
-        while(not in_empty(empty_neighbours,*it) and it != resultprinc.end()) ++it;
-        if(it == resultprinc.end() and !empty_neighbours.empty()) result = empty_neighbours[0];
-        else result = *it;
-        return result;
-    }
 
     /**
      * FUNCTIONS AND ALGORITHMS FOR THE PRINCIPAL FUNCTIONS
      */
 
-    /**
-     * vertex_bonus_neighbour function
-     * @param actual_vert_id
-     * @return vertex id if bonus is a neighbour, -1 otherwise
-     */
-    int vertex_bonus_neighbour(int actual_vert_id) {
-        vector<int> bv = bonus_vertices();
-        vector<int> actual_neighbours = vertex(actual_vert_id).neighbours;
-        for(int i = 0; i < bv.size(); ++i) {
-            for(int j = 0; j < actual_neighbours.size(); ++j) {
-                if(bv[i] == actual_neighbours[j]) return bv[i];
-            }
-         }
-        return -1;
-    }
     void empty_neighbours_funtion(const vector<int>& neighbours, vector<int>& empty_neighbours) {
         for (int i = 0; i < (int) neighbours.size(); i++) {
             int id = neighbours[i];
-            if (vertex(id).wall == -1) {
+            if (vertex(id).wall == -1 or vertex(id).bike == -1) {
                 empty_neighbours.push_back(id);
             }
         }
     }
 
+    /* PRINCIPAL
+     * RECURSIVE
+     * FUNCTION
+     * */
+    void recursive_path(int vertex_id, vector<int>& vectorref, bool first) {
+        cerr << "REC" << endl;
+        Vertex ver = vertex(vertex_id);
+        vector<int> neighbours = ver.neighbours;
+        vector<int> empty_neighbours;
+        empty_neighbours_funtion(neighbours,empty_neighbours);
+        //CAS BASE (JA VISITAT)
+        if(not first and ocupada(vertex_id)) return;
+        //CAS RECURSIU
+        else {
+            for(int i = 0; i < empty_neighbours.size() and next_next(empty_neighbours[i]) and not ocupada(empty_neighbours[i]) and not own_bike_to_enter(empty_neighbours[i]); ++i) {
+                vectorref.push_back(empty_neighbours[i]);
+                recursive_path(empty_neighbours[i],vectorref,false);
+            }
+        }
+    }
+
+
+
     void movement_general(const Bike& my_bike) {
         cerr << "MOVEMENT GENERAL" << endl;
         Movement movement1(my_bike.id);
         int actual_vertex = my_bike.vertex;
-        int next_vertex1 = next_longest_vertex(actual_vertex);
-        movement1.next_vertex = next_vertex1;
+        vector<int> aux;
+        recursive_path(actual_vertex,aux,true);
+        movement1.next_vertex = aux[0];
         if(my_bike.bonus != None) movement1.use_bonus = true;
-        bike_positions.push_back(next_vertex1);
+        bike_positions.push_back(movement1.next_vertex);
         command(movement1);
     }
     /**
-     * Function to prove if the next vertex has empty neighbours
+     * Function to prove if the next vertex has neighbours with empty neighbours
      * @param vertex1
      * @return True if has neighbours, False if not
      */
@@ -148,13 +111,35 @@ struct PLAYER_NAME : public Player {
         vector<int> neighbours = vertex1.neighbours;
         vector<int> empty_neighbours;
         empty_neighbours_funtion(neighbours,empty_neighbours);
-        return !empty_neighbours.empty();
+        if(empty_neighbours.empty() or empty_neighbours.size() == 1) return false;
+        else return true;
+    }
+
+    void update_map() {
+        for(int i = 0; i < nb_vertices(); ++i) {
+            Vertex vertex1 = vertex(i);
+            if(vertex1.wall != -1 or vertex1.bike != -1) actual_situation[i] = true;
+        }
+    }
+
+    bool ocupada(int vertex_id) {
+        return actual_situation[vertex_id];
+    }
+
+    void escriure_ocupada() {
+        for(int i = 0; i < nb_vertices(); ++i) {
+            if(actual_situation[i]) cerr << i << " ";
+        }
+        cerr << endl;
     }
 
     /**
      * Attributes for your player can be defined here.
      */
+    bool first = true;
+    int vertices;
     vector<int> bike_positions;
+    vector<bool> actual_situation;
 
     /**
      * Play method.
@@ -164,10 +149,18 @@ struct PLAYER_NAME : public Player {
      * for this round.
      */
     void play () {
-
+        vertices = nb_vertices();
+        if(first) {
+            first = false;
+            for (int i = 0; i < vertices; ++i) {
+                actual_situation.push_back(false);
+            }
+        }
         vector<int> my_bikes = bikes(me());
+        update_map();
+        escriure_ocupada();
         for (int i = 0; i < (int)my_bikes.size(); ++i) {
-
+            update_map();
             const Bike& my_bike = bike(my_bikes[i]);
 
             // Do something only if this bike is alive
@@ -180,41 +173,6 @@ struct PLAYER_NAME : public Player {
                 continue;
             }
             movement_general(my_bike);
-            //to_bonus(my_bike);
-            //REPLACING ALL CONTINUE!
-
-            /*
-            // Find all empty neighbours
-            vector<int> neighbours = vertex(my_bike.vertex).neighbours;
-            vector<int> empty_neighbours;
-            for (int i = 0; i < (int)neighbours.size(); i++) {
-                int id = neighbours[i];
-                if (vertex(id).wall == -1) {
-                    empty_neighbours.push_back(id);
-                }
-            }
-            // Create an empty movement
-            Movement movement(my_bike.id);
-
-            //RECTE
-            if(!empty_neighbours.empty()) movement.next_vertex = empty_neighbours[0];
-            if(my_bike.bonus != None) movement.use_bonus = true;
-
-            // Set next_vertex to a random empty neighbour, if any, or to a random neighbour otherwise
-            if (!empty_neighbours.empty()) {
-                movement.next_vertex = empty_neighbours[ rand() % (int)empty_neighbours.size() ];
-            } else {
-                movement.next_vertex = neighbours[ rand() % (int)neighbours.size() ];
-            }
-
-            // Use bonus randomly when we have one
-            if (my_bike.bonus != None && rand()%5 > 3) {
-                movement.use_bonus = true;
-            }
-            // Command the movement
-            command(movement);
-             */
-
         }
 
     }
