@@ -1,7 +1,9 @@
 
 # Uncomment the line for your platform to link the Dummy player to the executable
+#DUMMY_OBJ = AIDummy.o-LINUX64-gcc6
+#DUMMY_OBJ = AIDummy.o-LINUX32-gcc6
 #DUMMY_OBJ = AIDummy.o-LINUX32
-DUMMY_OBJ = AIDummy.o-LINUX64
+#DUMMY_OBJ = AIDummy.o-LINUX64
 #DUMMY_OBJ = AIDummy.o-MACOS
 #DUMMY_OBJ = AIDummy.o-CYGWIN
 
@@ -35,7 +37,7 @@ ifeq ($(strip $(32BITS)),1)
 	ARCHFLAGS=-m32
 endif
 
-CXXFLAGS = -Wall -Wno-unused-variable $(ARCHFLAGS) $(PROFILEFLAGS) $(DEBUGFLAGS) -O$(strip $(OPTIMIZE)) #-Wextra
+CXXFLAGS = -std=c++11 -Wall -Wno-unused-variable $(ARCHFLAGS) $(PROFILEFLAGS) $(DEBUGFLAGS) -O$(strip $(OPTIMIZE))
 LDFLAGS  = -lm $(ARCHFLAGS) $(PROFILEFLAGS) $(DEBUGFLAGS) -O$(strip $(OPTIMIZE))
 
 # Rules

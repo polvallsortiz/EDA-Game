@@ -14,7 +14,7 @@ TODO:
 var time_per_round = 220; //ms, animation time between rounds
 var readysteadygo_time = 1000; //ms, time before the first round starts
 var usingWebGl = !isTrue(getURLParameter("nowebgl")); //Disable WebGL
-var mute = isTrue(getURLParameter("mute")); //Disable audio
+var mute = 1; //isTrue(getURLParameter("mute")); //Disable audio
 var ascii = isTrue(getURLParameter("ascii")); //An easter egg :P
 var assignatura = getURLParameter("ass"); //Not used, but given as paramter sometimes
 var map_transparency = 0.8;

@@ -393,7 +393,8 @@ Board Board::next (const vector<Action>& actions_commanded, Action& actions_done
             bike.alive = false;
             bike.ghost_duration = 0;
             bike.turbo_duration = 0;
-            //Remove the bike trail wall
+	    b.vertices_[bike.vertex].bike = -1;
+	    //Remove the bike trail wall
             for (int i = 0; i < (int)b.vertices_.size(); ++i) {
                 if (b.vertices_[i].wall == bike.id) {
                     //bug fix: ghost bikes that have been in the same vertices as this bike should claim it as theirs

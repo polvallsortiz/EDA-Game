@@ -23,123 +23,152 @@ struct PLAYER_NAME : public Player {
         return new PLAYER_NAME;
     }
 
+    /**
+     * FUNCTIONS AND ALGORITHMS FOR THE PRINCIPAL FUNCTIONS
+     */
+
     bool visited_function(int vertex_id, const vector<int>& visited) {
         int i = 0;
         bool found = false;
-        while(i < visited.size() and not found) {
+        while(i < (int)visited.size() and not found) {
             if(visited[i] == vertex_id) found = true;
             ++i;
         }
         return found;
     }
 
-    bool in_empty(const vector<int> empty_neighbours, int vertex_id) {
-        int i = 0;
-        bool found = false;
-        while(i < empty_neighbours.size() and not found) {
-            if(empty_neighbours[i] == vertex_id) found = true;
-            ++i;
-        }
-        return found;
-    }
-
     bool own_bike_to_enter(int vertex_to_go) {
+        cerr << "mirant bike" << endl;
         int i = 0;
         bool found = false;
-        while(i < bike_positions.size() and not found) {
+        while(i < (int)bike_positions.size() and not found) {
             if(bike_positions[i] == vertex_to_go) found = true;
             ++i;
         }
         return found;
     }
 
-
-    /**
-     * FUNCTIONS AND ALGORITHMS FOR THE PRINCIPAL FUNCTIONS
-     */
+    int vertex_bonus_neighbour(int actual_vert_id) {
+        vector<int> bv = bonus_vertices();
+        vector<int> actual_neighbours = vertex(actual_vert_id).neighbours;
+        for(int i = 0; i < (int)bv.size(); ++i) {
+            for(int j = 0; j < (int)actual_neighbours.size(); ++j) {
+                if(bv[i] == actual_neighbours[j]) return bv[i];
+            }
+        }
+        return -1;
+    }
 
     void empty_neighbours_funtion(const vector<int>& neighbours, vector<int>& empty_neighbours) {
         for (int i = 0; i < (int) neighbours.size(); i++) {
             int id = neighbours[i];
-            if (vertex(id).wall == -1 or vertex(id).bike == -1) {
+            if (vertex(id).wall == -1) {
                 empty_neighbours.push_back(id);
             }
         }
     }
 
-    /* PRINCIPAL
-     * RECURSIVE
-     * FUNCTION
-     * */
-    void recursive_path(int vertex_id, vector<int>& vectorref, bool first) {
-        cerr << "REC" << endl;
-        Vertex ver = vertex(vertex_id);
-        vector<int> neighbours = ver.neighbours;
-        vector<int> empty_neighbours;
-        empty_neighbours_funtion(neighbours,empty_neighbours);
-        //CAS BASE (JA VISITAT)
-        if(not first and ocupada(vertex_id)) return;
-        //CAS RECURSIU
-        else {
-            for(int i = 0; i < empty_neighbours.size() and next_next(empty_neighbours[i]) and not ocupada(empty_neighbours[i]) and not own_bike_to_enter(empty_neighbours[i]); ++i) {
-                vectorref.push_back(empty_neighbours[i]);
-                recursive_path(empty_neighbours[i],vectorref,false);
-            }
-        }
-    }
-
-
-
-    void movement_general(const Bike& my_bike) {
-        cerr << "MOVEMENT GENERAL" << endl;
-        Movement movement1(my_bike.id);
-        int actual_vertex = my_bike.vertex;
-        vector<int> aux;
-        recursive_path(actual_vertex,aux,true);
-        movement1.next_vertex = aux[0];
-        if(my_bike.bonus != None) movement1.use_bonus = true;
-        bike_positions.push_back(movement1.next_vertex);
-        command(movement1);
-    }
-    /**
-     * Function to prove if the next vertex has neighbours with empty neighbours
-     * @param vertex1
-     * @return True if has neighbours, False if not
-     */
     bool next_next(int vertex_id) {
-        Vertex vertex1 = vertex(vertex_id);
-        vector<int> neighbours = vertex1.neighbours;
+        cerr << "mirant next_next" << endl;
+        vector<int> neighbours = vertex(vertex_id).neighbours;
+        cerr << "neigh fets" << endl;
         vector<int> empty_neighbours;
         empty_neighbours_funtion(neighbours,empty_neighbours);
-        if(empty_neighbours.empty() or empty_neighbours.size() == 1) return false;
+        cerr << "he fet empty" << endl;
+        cerr << empty_neighbours.size() << endl;
+        if(empty_neighbours.size() < 2) return false;
         else return true;
     }
 
-    void update_map() {
-        for(int i = 0; i < nb_vertices(); ++i) {
-            Vertex vertex1 = vertex(i);
-            if(vertex1.wall != -1 or vertex1.bike != -1) actual_situation[i] = true;
+    bool warning(int vertex_id) {
+        cerr << "mirant warning" << endl;
+        Vertex vertex1 = vertex(vertex_id);
+        vector<int> neighbours = vertex1.neighbours;
+        vector<int> empty;
+        empty_neighbours_funtion(neighbours,empty);
+        bool found = false;
+        int i = 0;
+        while(i < (int)empty.size() and not found) {
+            if(vertex(empty[i]).bike != -1) found = true;
+            ++i;
         }
+        cerr << "return warning" << endl;
+        return found;
     }
 
-    bool ocupada(int vertex_id) {
-        return actual_situation[vertex_id];
+    //DESDE VERTEX_ID (INCLOS OSIGUI list[0] ja és neighbour
+    list<int> dfs_game(int vertex_id) {
+        cerr << "a dfs" << endl;
+        list<int> result;
+        stack<int> stack1;
+        vector<int> visited;
+        visited.push_back(vertex_id);   //1
+        stack1.push(vertex_id);              //2
+        result.push_back(vertex_id);    //3
+        cerr << "abans stack" << endl;
+        while(!stack1.empty()) {
+            vector<int> neighbours = vertex(vertex_id).neighbours;
+            vector<int> adj;
+            empty_neighbours_funtion(neighbours, adj);
+            int j = 0;
+            while (j < (int)adj.size() and visited_function(adj[j],visited)) ++j;
+            if (j != (int)adj.size()) {
+                visited.push_back(adj[j]);  //1
+                stack1.push(adj[j]);             //2
+                result.push_back(adj[j]);   //3
+                vertex_id = adj[j];         //4 -> Assign i = v
+            }
+            else {
+                vertex_id = stack1.top();
+                stack1.pop();    //TREURE ELEMENT STACK
+            }
+        }
+        return result;
     }
 
-    void escriure_ocupada() {
-        for(int i = 0; i < nb_vertices(); ++i) {
-            if(actual_situation[i]) cerr << i << " ";
+
+    void movement_general(const Bike& my_bike) {
+        cerr << "movement" << endl;
+        Movement movement1(my_bike.id);
+        cerr << "movement2" << endl;
+        vector<int> neighbours_princ = vertex(my_bike.vertex).neighbours;
+        cerr << "movement3" << endl;
+        vector<int> empty_princ;
+        cerr << "movement4" << endl;
+        empty_neighbours_funtion(neighbours_princ,empty_princ);
+        cerr << "movement5" << endl;
+        int i = 0;
+        int vertex_dfs = -1;
+        int size_large=0;
+        list<int> dfs;
+        while(i < (int)empty_princ.size()) {
+            cerr << "abans dfs" << endl;
+            dfs = dfs_game(empty_princ[i]);
+            cerr << "despres dfs" << endl;
+            if(dfs.size() > 0 and next_next(empty_princ[i]) and not own_bike_to_enter(empty_princ[i]) and not warning(empty_princ[i]) and (int)dfs.size() > size_large) {
+                cerr << "dfs si" << endl;
+                size_large = dfs.size();
+                vertex_dfs = dfs.front();
+            }
+            ++i;
         }
-        cerr << endl;
+        cerr << "fora while" << endl;
+        if(vertex_dfs == -1) {
+            if (empty_princ.size() > 0) vertex_dfs = empty_princ[0];
+            else vertex_dfs = neighbours_princ[rand() % neighbours_princ.size()];
+        }
+        cerr << "MOTO NUMERO " << my_bike.id << " es mou a POS " << vertex_dfs << endl;
+        bike_positions.push_back(vertex_dfs);
+        movement1.next_vertex = vertex_dfs;
+        movement1.use_bonus = (my_bike.bonus != None);
+        command(movement1);
     }
+
 
     /**
      * Attributes for your player can be defined here.
      */
-    bool first = true;
-    int vertices;
     vector<int> bike_positions;
-    vector<bool> actual_situation;
 
     /**
      * Play method.
@@ -149,18 +178,10 @@ struct PLAYER_NAME : public Player {
      * for this round.
      */
     void play () {
-        vertices = nb_vertices();
-        if(first) {
-            first = false;
-            for (int i = 0; i < vertices; ++i) {
-                actual_situation.push_back(false);
-            }
-        }
+        bike_positions.clear();
         vector<int> my_bikes = bikes(me());
-        update_map();
-        escriure_ocupada();
         for (int i = 0; i < (int)my_bikes.size(); ++i) {
-            update_map();
+
             const Bike& my_bike = bike(my_bikes[i]);
 
             // Do something only if this bike is alive
