@@ -38,7 +38,6 @@ struct PLAYER_NAME : public Player {
     }
 
     bool own_bike_to_enter(int vertex_to_go) {
-        cerr << "mirant bike" << endl;
         int i = 0;
         bool found = false;
         while(i < (int)bike_positions.size() and not found) {
@@ -69,19 +68,14 @@ struct PLAYER_NAME : public Player {
     }
 
     bool next_next(int vertex_id) {
-        cerr << "mirant next_next" << endl;
         vector<int> neighbours = vertex(vertex_id).neighbours;
-        cerr << "neigh fets" << endl;
         vector<int> empty_neighbours;
         empty_neighbours_funtion(neighbours,empty_neighbours);
-        cerr << "he fet empty" << endl;
-        cerr << empty_neighbours.size() << endl;
         if(empty_neighbours.size() < 2) return false;
         else return true;
     }
 
     bool warning(int vertex_id) {
-        cerr << "mirant warning" << endl;
         Vertex vertex1 = vertex(vertex_id);
         vector<int> neighbours = vertex1.neighbours;
         vector<int> empty;
@@ -92,20 +86,17 @@ struct PLAYER_NAME : public Player {
             if(vertex(empty[i]).bike != -1) found = true;
             ++i;
         }
-        cerr << "return warning" << endl;
         return found;
     }
 
     //DESDE VERTEX_ID (INCLOS OSIGUI list[0] ja és neighbour
     list<int> dfs_game(int vertex_id) {
-        cerr << "a dfs" << endl;
         list<int> result;
         stack<int> stack1;
         vector<int> visited;
         visited.push_back(vertex_id);   //1
         stack1.push(vertex_id);              //2
         result.push_back(vertex_id);    //3
-        cerr << "abans stack" << endl;
         while(!stack1.empty()) {
             vector<int> neighbours = vertex(vertex_id).neighbours;
             vector<int> adj;
@@ -128,36 +119,26 @@ struct PLAYER_NAME : public Player {
 
 
     void movement_general(const Bike& my_bike) {
-        cerr << "movement" << endl;
         Movement movement1(my_bike.id);
-        cerr << "movement2" << endl;
         vector<int> neighbours_princ = vertex(my_bike.vertex).neighbours;
-        cerr << "movement3" << endl;
         vector<int> empty_princ;
-        cerr << "movement4" << endl;
         empty_neighbours_funtion(neighbours_princ,empty_princ);
-        cerr << "movement5" << endl;
         int i = 0;
         int vertex_dfs = -1;
         int size_large=0;
         list<int> dfs;
         while(i < (int)empty_princ.size()) {
-            cerr << "abans dfs" << endl;
             dfs = dfs_game(empty_princ[i]);
-            cerr << "despres dfs" << endl;
             if(dfs.size() > 0 and next_next(empty_princ[i]) and not own_bike_to_enter(empty_princ[i]) and not warning(empty_princ[i]) and (int)dfs.size() > size_large) {
-                cerr << "dfs si" << endl;
                 size_large = dfs.size();
                 vertex_dfs = dfs.front();
             }
             ++i;
         }
-        cerr << "fora while" << endl;
         if(vertex_dfs == -1) {
             if (empty_princ.size() > 0) vertex_dfs = empty_princ[0];
             else vertex_dfs = neighbours_princ[rand() % neighbours_princ.size()];
         }
-        cerr << "MOTO NUMERO " << my_bike.id << " es mou a POS " << vertex_dfs << endl;
         bike_positions.push_back(vertex_dfs);
         movement1.next_vertex = vertex_dfs;
         movement1.use_bonus = (my_bike.bonus != None);
