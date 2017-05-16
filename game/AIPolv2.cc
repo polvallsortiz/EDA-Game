@@ -39,18 +39,17 @@ struct PLAYER_NAME : public Player {
 
     bool own_bike_to_enter(int vertex_to_go) {
         int i = 0;
-        bool found = false;
-        while(i < (int)bike_positions.size() and not found) {
-            if(bike_positions[i] == vertex_to_go) found = true;
+        while(i < (int)bike_positions.size()) {
+            if(bike_positions[i] == vertex_to_go) return true;
             ++i;
         }
-        return found;
+        return false;
     }
 
     int vertex_bonus_neighbour(int actual_vert_id) {
         vector<int> actual_neighbours = vertex(actual_vert_id).neighbours;
         int i = 0;
-        while(i < actual_neighbours.size()) {
+        while(i < (int)actual_neighbours.size()) {
             Vertex v1 = vertex(actual_neighbours[i]);
             if(v1.bonus != None) return v1.id;
             ++i;
@@ -58,10 +57,14 @@ struct PLAYER_NAME : public Player {
         return -1;
     }
 
+    bool vertex_bonus(int actual_vertex) {
+        return vertex(actual_vertex).bonus != None;
+    }
+
     void empty_neighbours_funtion(const vector<int>& neighbours, vector<int>& empty_neighbours) {
         for (int i = 0; i < (int) neighbours.size(); i++) {
             int id = neighbours[i];
-            if (vertex(id).wall == -1) {
+            if (vertex(id).wall == -1 and vertex(id).bike == -1) {
                 empty_neighbours.push_back(id);
             }
         }
@@ -71,22 +74,19 @@ struct PLAYER_NAME : public Player {
         vector<int> neighbours = vertex(vertex_id).neighbours;
         vector<int> empty_neighbours;
         empty_neighbours_funtion(neighbours,empty_neighbours);
-        if(empty_neighbours.size() < 2) return false;
+        if((int)empty_neighbours.size() < 2) return false;
         else return true;
     }
 
     bool warning(int vertex_id) {
         Vertex vertex1 = vertex(vertex_id);
         vector<int> neighbours = vertex1.neighbours;
-        vector<int> empty;
-        empty_neighbours_funtion(neighbours,empty);
-        bool found = false;
         int i = 0;
-        while(i < (int)empty.size() and not found) {
-            if(vertex(empty[i]).bike != -1) found = true;
+        while(i < (int)neighbours.size()) {
+            if(vertex(neighbours[i]).bike != -1) return true;
             ++i;
         }
-        return found;
+        return false;
     }
 
     //DESDE VERTEX_ID (INCLOS OSIGUI list[0] ja és neighbour
@@ -128,18 +128,37 @@ struct PLAYER_NAME : public Player {
         int vertex_dfs = -1;
         int size_large = 0;
         list<int> dfs;
+        bool actual_warning = false;
         while (i < (int) empty_princ.size()) {
             dfs = dfs_game(empty_princ[i]);
-            if (dfs.size() > 0 and next_next(empty_princ[i]) and not own_bike_to_enter(empty_princ[i]) and
-                not warning(empty_princ[i]) and (int) dfs.size() > size_large) {
-                size_large = dfs.size();
-                vertex_dfs = dfs.front();
+            if (dfs.size() > 0 and next_next(empty_princ[i]) and not own_bike_to_enter(empty_princ[i])) {
+                if(size_large == 0) {       //NO TENIM PATH AIXI QUE EM DE TROBAR-LO
+                    size_large = dfs.size();
+                    vertex_dfs = dfs.front();
+                    actual_warning = warning(empty_princ[i]);
+                }
+                else {                      //JA TENIM PATH AIXI QUE RELAXAT
+                    if(actual_warning) {    //ESTEM SOTA AMENAÇA
+                        if(not warning(empty_princ[i])) {
+                            actual_warning = false;
+                            size_large = dfs.size();
+                            vertex_dfs = dfs.front();
+                        }
+                    }
+                    else {          //NO ESTEM AMB AMENAÇA
+                        if(size_large < (int)dfs.size() and not warning(empty_princ[i])) {  //MILLOR PATH
+                            size_large = dfs.size();
+                            vertex_dfs = dfs.front();
+                        }
+                    }
+                }
             }
             ++i;
         }
         if (vertex_dfs == -1) {
+            cerr << "AQUI EXCEPCIONALMENT" << endl;
             if (empty_princ.size() > 0) vertex_dfs = empty_princ[0];
-            else vertex_dfs = neighbours_princ[rand() % neighbours_princ.size()];
+            else vertex_dfs = neighbours_princ[0];
         }
         bike_positions.push_back(vertex_dfs);
         movement1.next_vertex = vertex_dfs;
@@ -161,7 +180,6 @@ struct PLAYER_NAME : public Player {
      * for this round.
      */
     void play () {
-        bike_positions.clear();
         vector<int> my_bikes = bikes(me());
         for (int i = 0; i < (int)my_bikes.size(); ++i) {
 
@@ -189,6 +207,3 @@ struct PLAYER_NAME : public Player {
  * Do not modify the following line.
  */
 RegisterPlayer(PLAYER_NAME);
-
-
-
